@@ -101,7 +101,7 @@ int main(){
 	cin>>tube.number;
 	cout<<endl;
 	cout<<"Enter the shell side and tube side pressures:"<<endl;
-	cint>>shell.pressure>>tube.pressure;
+	cin>>shell.pressure>>tube.pressure;
 	cout<<endl;
 	shell.designPressure=1.1*shell.pressure;
 	tube.designPressure=1.1*tube.pressure;
@@ -121,9 +121,9 @@ int main(){
 	cin>>tube.pitchType;
 	shellIDprocedure:
 		if(tube.pitchType.compare("Square")==0||tube.pitchType.compare("square")==0||tube.pitchType.compare("SQUARE")==0){ //Internal diameter for aquare pitch
-			shell.ID=2*tube.pitch*sqrt(tube.pass*tube.number/PI);
+			shell.ID=2*tube.pitch*sqrt(tube.passes*tube.number/PI);
 		}else if(tube.pitchType.compare("Triangular")==0||tube.pitchType.compare("triangular")==0||tube.pitchType.compare("TRIANGULAR")==0){ //Internal diameter for triangular pitch
-			shell.ID=tube.pitch*sqrt(2*tube.pass*tube.number*sqrt(3)/PI);
+			shell.ID=tube.pitch*sqrt(2*tube.passes*tube.number*sqrt(3)/PI);
 		}else{
 			goto shellIDprocedure; //The pitch type entered is invalid so program reverts to shell ID determination
 		}
@@ -151,13 +151,13 @@ int main(){
 	struct baffle bfl;
 	cout<<"Enter the desired baffle cut for the heat exchanger:"<<endl;
 	cin>>bfl.cut;
-	blf.length=static_cast<int>(shell.ID*(1-(0.01*static_cast<float>(bfl.cut))));
+	bfl.length=static_cast<int>(shell.ID*(1-(0.01*static_cast<float>(bfl.cut))));
 	
 	struct gasket G1;
 	cout<<"Enter the gasket internal diameter:"<<endl;
 	cin>>G1.ID;
 	cout<<"Enter the gasket external diameter:"<<endl;
-	cin>>G1.OD
+	cin>>G1.OD;
 	cout<<"Enter the gasket factor:"<<endl;
 	cin>>G1.m;
 	cout<<"Enter the gasket seating stress:"<<endl;
@@ -172,7 +172,7 @@ int main(){
 	}
 	
 	struct bolt b1;
-	b1.number=static_cast<int>(g1.G/25);
+	b1.number=static_cast<int>(G1.G/25);
 	if(b1.number%4!=0){
 		switch(b1.number%4){
 			case 1:
@@ -182,7 +182,7 @@ int main(){
 				b1.number+=2;
 				break;
 			case 3:
-				b1.number+=1
+				b1.number+=1;
 				break;
 			default:
 				break;
@@ -197,7 +197,7 @@ int main(){
 	b1.W_m1=PI*G1.b*G1.G*G1.Ya;
 	b1.W_m2=(2*PI*G1.b*G1.m*shell.designPressure)+(PI*pow(G1.G,2)*shell.designPressure/4);
 	b1.W_m=(b1.W_m1>b1.W_m2)?b1.W_m1:b1.W_m2;
-	b1.A_m=b1.W_m/b1.f;
+	b1.A_m=b1.W_m/b1.F;
 	b1.A=b1.A_m/b1.number;
 	b1.d=static_cast<int>((1/0.51)*pow(b1.A,1/2.09));
 	
@@ -207,7 +207,7 @@ int main(){
 	G1.k=1/(0.3+(1.5*b1.W_m*G1.h_g/(G1.H*G1.G)));
 	
 	struct flange fl;
-	f1.th=G1.G*sqrt(shell.designPressure/(G1.k*shell.F));
+	fl.th=G1.G*sqrt(shell.designPressure/(G1.k*shell.F));
 	
 	cout<<"Enter the external diameter of tube:"<<endl;
 	cin>>tube.OD;
@@ -221,7 +221,7 @@ int main(){
 	cin>>tube.l;
 	tube.th=static_cast<int>(tube.designPressure*tube.OD/((2*tube.F)-tube.designPressure));
 	tubePresCorrection:
-		tube.Pc=static_cast<int>(2.42*t.E*pow(tube.th/tube.OD,2.5)/(pow(1-pow(tube.mu,2),0.75)*((tube.l/tube.OD)-0.45*sqrt(tube.th/tube.OD))));
+		tube.Pc=static_cast<int>(2.42*tube.E*pow(tube.th/tube.OD,2.5)/(pow(1-pow(tube.mu,2),0.75)*((tube.l/tube.OD)-0.45*sqrt(tube.th/tube.OD))));
 		tube.Pc=tube.Pc/4;
 		if(shell.designPressure>tube.Pc){
 			tube.th+=0.1;
@@ -258,17 +258,21 @@ int main(){
 	b2.number=G2.G/25;
 	if(b2.number%4!=0){
 		switch(b2.number%4){
-			case 1:b2.number=b2.number-1;
-				   break;
-			case 2:b2.number=b2.number+2;
-			       break;
-			case 3:b2.number=b2.number+1;
+			case 1:
+				b2.number=b2.number-1;
+				break;
+			case 2:
+				b2.number=b2.number+2;
+			    break;
+			case 3:
+				b2.number=b2.number+1;
+				break;
 		}
 	}else{
 		b2.number=b2.number;
 	}
 	
-	b2.W_m1=PI*G2.b*g1.G*G2.Ya;
+	b2.W_m1=PI*G2.b*G1.G*G2.Ya;
 	b2.W_m2=(2*PI*G2.b*G1.m*shell.designPressure)+(PI*pow(G2.G,2)*shell.designPressure/4);
 	b2.W_m=(b2.W_m1>b2.W_m2)?b2.W_m1:b2.W_m2;
 	b2.A_m=b2.W_m/b2.F;
@@ -281,7 +285,7 @@ int main(){
 	G2.k=1/(0.3+(1.5*b2.W_m*G2.h_g/(G2.H*G2.G)));
 	
 	struct flange f2;
-	f2.th=static_cast<int>(G2.G*sqrt(shell.desigPressure/(G2.k*shell.F)));
+	f2.th=static_cast<int>(G2.G*sqrt(shell.designPressure/(G2.k*shell.F)));
 	
 	int nozzleID;
 	cout<<"Enter the internal diameter of nozzle:"<<endl;
@@ -289,6 +293,7 @@ int main(){
 	int tnozzle=static_cast<int>(tube.designPressure*nozzleID/((2*tube.F)-tube.designPressure));
 	int tionozzle=static_cast<int>(shell.designPressure*nozzleID/((2*shell.F*shell.J)-shell.designPressure)+shell.ca);
 	
+	cout<<"Unless mentioned as a number, all the computed variables are in mm"<<endl;
 	cout<<"The shell ID is "<<shell.ID<<endl;
 	cout<<"The shell thickness is :"<<shell.th<<endl;
 	cout<<"The thickness of inlet-outlet nozzles is :"<<tionozzle<<endl;
